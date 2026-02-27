@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  background-color: #1C1C1E;
+  color: #FFFFFF;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  overscroll-behavior: none;
+}
+
+/* Mobile app wrapper - center on desktop, full on mobile */
+.app-shell {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  background-color: #1C1C1E;
+  overflow: hidden;
+}
+
+/* Smooth scrolling */
+.scroll-area {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 0; background: transparent; }
+
+/* Checkbox custom styles */
+input[type="checkbox"] {
+  accent-color: #FFD700;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.btn-press:active {
+  transform: scale(0.97);
+  transition: transform 0.1s;
+}
+
+/* Priority colors */
+.priority-HIGH { color: #FF3B30; }
+.priority-MED  { color: #FF9F0A; }
+.priority-Low  { color: #30D158; }
+.priority-high { color: #FF3B30; }
+.priority-med  { color: #FF9F0A; }
+.priority-low  { color: #30D158; }
