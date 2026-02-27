@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +10,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const idInputRef = useRef(null);
+  const pinInputRef = useRef(null);
+
+  // Auto-focus the correct input whenever step changes
+  useEffect(() => {
+    if (step === 'id') idInputRef.current?.focus();
+    else pinInputRef.current?.focus();
+  }, [step]);
 
   function handleKeyPress(key) {
     if (step === 'id') {
@@ -63,22 +71,51 @@ export default function Login() {
         {step === 'id' ? (
           <>
             <p className="text-app-muted text-sm mb-3">Enter Employee ID</p>
-            <div className="bg-app-input rounded-xl px-4 py-3 text-white text-lg font-mono tracking-widest min-h-[44px]">
-              {employeeId || <span className="text-app-muted">e.g. ADM001</span>}
-            </div>
-            <p className="text-app-muted text-xs mt-2">Type your employee ID using the keypad</p>
+            <input
+              ref={idInputRef}
+              type="text"
+              value={employeeId}
+              onChange={e => { setEmployeeId(e.target.value.toUpperCase().slice(0, 10)); setError(''); }}
+              onKeyDown={e => { if (e.key === 'Enter') proceedToPin(); }}
+              placeholder="e.g. ADM001"
+              autoComplete="off"
+              autoCapitalize="characters"
+              className="w-full bg-app-input rounded-xl px-4 py-3 text-white text-lg font-mono tracking-widest min-h-[44px] placeholder-app-muted focus:outline-none focus:ring-2 focus:ring-app-accent"
+            />
+            <p className="text-app-muted text-xs mt-2">Type with keyboard or use the keypad below</p>
           </>
         ) : (
           <>
             <p className="text-app-muted text-sm mb-3">Enter PIN</p>
-            <div className="flex gap-3 justify-center py-2">
-              {[0,1,2,3].map(i => (
-                <div key={i}
-                  className={`w-4 h-4 rounded-full border-2 transition-colors ${i < pin.length ? 'bg-app-accent border-app-accent' : 'border-app-border'}`}
-                />
-              ))}
-            </div>
-            <p className="text-app-muted text-xs text-center mt-2">4-digit PIN · <button className="text-app-accent underline" onClick={() => setStep('id')}>Change ID</button></p>
+            {/* Hidden input captures physical keyboard digits */}
+            <input
+              ref={pinInputRef}
+              type="password"
+              inputMode="numeric"
+              value={pin}
+              onChange={e => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setPin(digits);
+                setError('');
+                if (digits.length === 4) setTimeout(handleLogin, 100);
+              }}
+              onKeyDown={e => { if (e.key === 'Enter') handleLogin(); }}
+              maxLength={4}
+              autoComplete="current-password"
+              className="sr-only"
+            />
+            <button onClick={() => pinInputRef.current?.focus()} className="w-full">
+              <div className="flex gap-3 justify-center py-2">
+                {[0,1,2,3].map(i => (
+                  <div key={i}
+                    className={`w-4 h-4 rounded-full border-2 transition-colors ${i < pin.length ? 'bg-app-accent border-app-accent' : 'border-app-border'}`}
+                  />
+                ))}
+              </div>
+            </button>
+            <p className="text-app-muted text-xs text-center mt-2">
+              4-digit PIN · <button className="text-app-accent underline" onClick={() => setStep('id')}>Change ID</button>
+            </p>
           </>
         )}
         {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
