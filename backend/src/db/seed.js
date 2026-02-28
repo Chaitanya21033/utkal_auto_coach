@@ -15,6 +15,10 @@ db.exec(`
   DELETE FROM work_orders;
   DELETE FROM incidents;
   DELETE FROM users;
+  DELETE FROM meter_readings;
+  DELETE FROM production_logs;
+  DELETE FROM emission_factors;
+  DELETE FROM app_config;
 `);
 
 // Seed users
@@ -91,6 +95,99 @@ const insertIncident = db.prepare(`
 const safety = insertedUsers['safety_hr'];
 insertIncident.run({ title: 'Chemical Spill',      description: 'Paint thinner spill near booth exit', incident_type: 'hazard',    stage: 'Paint Shop',   severity: 'HIGH', reported_by: safety, status: 'investigating', created_at: new Date(now - 4 * 3600000).toISOString() });
 insertIncident.run({ title: 'Slip Near Welding',   description: 'Water on floor near welding bay',    incident_type: 'near_miss', stage: 'Welding',      severity: 'MED',  reported_by: safety, status: 'open',          created_at: new Date(now - 6 * 3600000).toISOString() });
+
+// ── Emission factors per production stage ─────────────────────────────────────
+// electricity_kwh_per_unit: estimated kWh consumed per tipper body unit passing through this stage
+// water_kl_per_unit:        estimated KL water used per unit in this stage
+// direct_co2_kg_per_unit:   Scope 1 direct process emissions (VOCs, welding fumes, etc.) per unit
+const insertFactor = db.prepare(`
+  INSERT INTO emission_factors (stage, electricity_kwh_per_unit, water_kl_per_unit, direct_co2_kg_per_unit, notes)
+  VALUES (@stage, @elec, @water, @co2, @notes)
+`);
+[
+  { stage: 'CKD',            elec: 50,  water: 0.2,  co2: 5,  notes: 'Cutting, drilling, deburring' },
+  { stage: 'Shot Blasting',  elec: 35,  water: 0.05, co2: 15, notes: 'Abrasive blasting; steel grit particulates' },
+  { stage: 'Welding',        elec: 45,  water: 0.1,  co2: 20, notes: 'MIG/MAG welding fumes + shielding gas' },
+  { stage: 'Paint Shop',     elec: 100, water: 2.5,  co2: 30, notes: 'Spray painting VOC emissions; booth exhaust' },
+  { stage: 'Final Assembly', elec: 25,  water: 0.1,  co2: 2,  notes: 'Mostly manual torquing + fitment' },
+  { stage: 'Finished Goods', elec: 5,   water: 0.0,  co2: 0,  notes: 'Inventory holding — minimal energy' },
+].forEach(r => insertFactor.run(r));
+
+// ── App config (CO2 emission factors) ─────────────────────────────────────────
+const insertConfig = db.prepare(`
+  INSERT INTO app_config (key, value, description) VALUES (?, ?, ?)
+  ON CONFLICT(key) DO UPDATE SET value = excluded.value
+`);
+insertConfig.run('grid_co2_factor', '0.82',  'kg CO2 per kWh — India CEA 2023-24 national grid');
+insertConfig.run('water_co2_factor', '0.344', 'kg CO2 per KL — water treatment & distribution');
+insertConfig.run('waste_co2_factor', '0.5',   'kg CO2 per kg scrap/waste — landfill equivalent');
+
+// ── Demo meter readings (past 30 days, bi-weekly) ─────────────────────────────
+// Simulates realistic meter readings so the ESG dashboard has data to show
+const insertMeter = db.prepare(`
+  INSERT INTO meter_readings (meter_type, meter_id, reading_value, unit, consumption_delta, recorded_by, recorded_at)
+  VALUES (@meter_type, @meter_id, @reading_value, @unit, @delta, @recorded_by, @recorded_at)
+`);
+const lm = insertedUsers['line_manager'];
+
+// Electricity meter – starting at 48,000 kWh, ~1,200 kWh consumed every 3 days
+let elecBase = 48000;
+for (let i = 29; i >= 0; i -= 3) {
+  const delta = 1100 + Math.round(Math.random() * 300);
+  const ts = new Date(now - i * 86400000).toISOString();
+  insertMeter.run({ meter_type: 'electricity', meter_id: 'MAIN-ELEC', reading_value: elecBase, unit: 'kWh', delta: i === 29 ? null : delta, recorded_by: lm, recorded_at: ts });
+  elecBase += delta;
+}
+
+// Water meter – starting at 3,200 KL, ~30 KL consumed every 3 days
+let waterBase = 3200;
+for (let i = 29; i >= 0; i -= 3) {
+  const delta = 25 + Math.round(Math.random() * 15);
+  const ts = new Date(now - i * 86400000).toISOString();
+  insertMeter.run({ meter_type: 'water', meter_id: 'MAIN-WATER', reading_value: waterBase, unit: 'KL', delta: i === 29 ? null : delta, recorded_by: lm, recorded_at: ts });
+  waterBase += delta;
+}
+
+// ── Demo production logs (past 14 days) ───────────────────────────────────────
+const insertProdLog = db.prepare(`
+  INSERT INTO production_logs
+    (log_date, shift_type, stage_entries, waste_kg, est_electricity_kwh, est_water_kl, direct_co2_kg, logged_by, logged_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
+const GRID = 0.82;
+const EFAC = {
+  'CKD':            { elec: 50,  water: 0.2,  co2: 5  },
+  'Shot Blasting':  { elec: 35,  water: 0.05, co2: 15 },
+  'Welding':        { elec: 45,  water: 0.1,  co2: 20 },
+  'Paint Shop':     { elec: 100, water: 2.5,  co2: 30 },
+  'Final Assembly': { elec: 25,  water: 0.1,  co2: 2  },
+  'Finished Goods': { elec: 5,   water: 0.0,  co2: 0  },
+};
+for (let i = 13; i >= 0; i--) {
+  const logDate = new Date(now - i * 86400000).toISOString().split('T')[0];
+  const entries = [
+    { stage: 'CKD',            units_in_stage: 4 + Math.round(Math.random() * 3) },
+    { stage: 'Shot Blasting',  units_in_stage: 3 + Math.round(Math.random() * 2) },
+    { stage: 'Welding',        units_in_stage: 5 + Math.round(Math.random() * 3) },
+    { stage: 'Paint Shop',     units_in_stage: 4 + Math.round(Math.random() * 2) },
+    { stage: 'Final Assembly', units_in_stage: 2 + Math.round(Math.random() * 2) },
+    { stage: 'Finished Goods', units_in_stage: 6 + Math.round(Math.random() * 4) },
+  ];
+  const waste = 100 + Math.round(Math.random() * 80);
+  let elec = 0, water = 0, co2 = 0;
+  for (const e of entries) {
+    const f = EFAC[e.stage] || {};
+    elec  += e.units_in_stage * (f.elec  || 0);
+    water += e.units_in_stage * (f.water || 0);
+    co2   += e.units_in_stage * (f.co2   || 0);
+  }
+  insertProdLog.run(
+    logDate, i % 3 === 0 ? 'A' : i % 3 === 1 ? 'B' : 'C',
+    JSON.stringify(entries), waste,
+    Math.round(elec * 10) / 10, Math.round(water * 100) / 100, Math.round(co2 * 10) / 10,
+    lm, new Date(now - i * 86400000 + 57600000).toISOString()
+  );
+}
 
 console.log('Seeding complete.');
 console.log('\nDemo credentials:');

@@ -132,6 +132,55 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now')),
     closed_at TEXT
   );
+
+  -- Meter readings: electricity (kWh) and water (KL)
+  CREATE TABLE IF NOT EXISTS meter_readings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    meter_type TEXT NOT NULL CHECK(meter_type IN ('electricity','water')),
+    meter_id   TEXT NOT NULL DEFAULT 'MAIN',
+    reading_value REAL NOT NULL,
+    unit TEXT NOT NULL,
+    consumption_delta REAL,
+    photo_data TEXT,
+    ocr_raw    TEXT,
+    recorded_by INTEGER REFERENCES users(id),
+    recorded_at TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Daily production stage snapshot by line manager
+  CREATE TABLE IF NOT EXISTS production_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    log_date   TEXT NOT NULL,
+    shift_type TEXT,
+    stage_entries TEXT NOT NULL,
+    waste_kg   REAL DEFAULT 0,
+    notes      TEXT,
+    est_electricity_kwh REAL DEFAULT 0,
+    est_water_kl        REAL DEFAULT 0,
+    direct_co2_kg       REAL DEFAULT 0,
+    logged_by  INTEGER REFERENCES users(id),
+    logged_at  TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Emission factors per production stage (admin-configurable)
+  CREATE TABLE IF NOT EXISTS emission_factors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stage TEXT NOT NULL UNIQUE,
+    electricity_kwh_per_unit REAL DEFAULT 0,
+    water_kl_per_unit        REAL DEFAULT 0,
+    direct_co2_kg_per_unit   REAL DEFAULT 0,
+    notes TEXT,
+    updated_by INTEGER REFERENCES users(id),
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Key-value app config (grid CO2 factor, water CO2 factor, etc.)
+  CREATE TABLE IF NOT EXISTS app_config (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    description TEXT,
+    updated_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 module.exports = db;

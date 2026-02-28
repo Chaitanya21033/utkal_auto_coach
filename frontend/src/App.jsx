@@ -28,7 +28,18 @@ import IssueMaterial   from './pages/store/IssueMaterial';
 import ScrapLog        from './pages/store/ScrapLog';
 
 // Admin
-import UserManagement from './pages/admin/UserManagement';
+import UserManagement  from './pages/admin/UserManagement';
+import EmissionFactors from './pages/admin/EmissionFactors';
+
+// Meters (OCR)
+import MeterList    from './pages/meters/MeterList';
+import MeterReading from './pages/meters/MeterReading';
+
+// Production Log
+import ProductionLog from './pages/production/ProductionLog';
+
+// ESG Dashboard
+import ESGDashboard from './pages/esg/ESGDashboard';
 
 function ProtectedRoute({ children, roles }) {
   const { user } = useAuth();
@@ -72,7 +83,18 @@ function AppRoutes() {
         <Route path="/log/scrap"              element={<ProtectedRoute><ScrapLog /></ProtectedRoute>} />
 
         {/* Admin */}
-        <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
+        <Route path="/admin/users"            element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
+        <Route path="/admin/emission-factors" element={<ProtectedRoute roles={['admin']}><EmissionFactors /></ProtectedRoute>} />
+
+        {/* Meter readings (OCR) */}
+        <Route path="/log/meters"         element={<ProtectedRoute><MeterList /></ProtectedRoute>} />
+        <Route path="/log/meters/capture" element={<ProtectedRoute><MeterReading /></ProtectedRoute>} />
+
+        {/* Production log */}
+        <Route path="/log/production" element={<ProtectedRoute roles={['line_manager','admin']}><ProductionLog /></ProtectedRoute>} />
+
+        {/* ESG Dashboard */}
+        <Route path="/esg" element={<ProtectedRoute roles={['line_manager','admin']}><ESGDashboard /></ProtectedRoute>} />
 
         {/* Default redirect */}
         <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />

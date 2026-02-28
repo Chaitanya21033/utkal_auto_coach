@@ -156,13 +156,17 @@ function getQuickActions(role, stats) {
       { label: 'Quality Gates', sub: 'Log checks', path: '/log/quality', color: 'bg-blue-500' },
     ],
     line_manager: [
+      { label: 'ESG Dashboard', sub: 'Emissions report', path: '/esg', color: 'bg-green-500' },
       { label: 'Maintenance', sub: `${stats.openTickets || 0} open tickets`, path: '/incidents/maintenance', color: 'bg-red-500' },
+      { label: 'Production Log', sub: 'Daily stage snapshot', path: '/log/production', color: 'bg-orange-500' },
       { label: 'Quality', sub: 'Gate oversight', path: '/log/quality', color: 'bg-blue-500' },
     ],
     safety_hr: [
       { label: 'Incidents', sub: 'Safety reports', path: '/incidents', color: 'bg-red-500' },
     ],
     admin: [
+      { label: 'ESG Dashboard', sub: 'Emissions report', path: '/esg', color: 'bg-green-500' },
+      { label: 'ESG Config', sub: 'Emission factors', path: '/admin/emission-factors', color: 'bg-green-700' },
       { label: 'Users', sub: 'Manage access', path: '/admin/users', color: 'bg-purple-500' },
       { label: 'Maintenance', sub: 'All tickets', path: '/incidents/maintenance', color: 'bg-red-500' },
     ],
