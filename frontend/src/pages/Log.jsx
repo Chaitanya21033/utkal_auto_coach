@@ -3,21 +3,32 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 
 const ROLE_LOG_OPTIONS = {
-  quality:      [{ label: 'Quality Gates', desc: '4 gates workflow', path: '/log/quality', color: 'bg-blue-600' }],
-  production:   [{ label: 'Quality Gates', desc: 'Log gate checks', path: '/log/quality', color: 'bg-blue-600' }],
+  quality:      [
+    { label: 'Quality Gates',  desc: '4 gates workflow',          path: '/log/quality',     color: 'bg-blue-600',   icon: '✅' },
+  ],
+  production:   [
+    { label: 'Quality Gates',  desc: 'Log gate checks',           path: '/log/quality',     color: 'bg-blue-600',   icon: '✅' },
+  ],
   store:        [
-    { label: 'Work Orders', desc: 'Issue materials', path: '/log/store', color: 'bg-green-600' },
-    { label: 'Scrap Log', desc: 'Log + dispatch scrap', path: '/log/scrap', color: 'bg-yellow-600' },
+    { label: 'Work Orders',    desc: 'Issue materials',           path: '/log/store',       color: 'bg-green-600',  icon: '📋' },
+    { label: 'Scrap Log',      desc: 'Log + dispatch scrap',      path: '/log/scrap',       color: 'bg-yellow-600', icon: '♻️' },
   ],
   line_manager: [
-    { label: 'Quality Gates', desc: 'Gate oversight', path: '/log/quality', color: 'bg-blue-600' },
-    { label: 'Work Orders', desc: 'Store oversight', path: '/log/store', color: 'bg-green-600' },
-    { label: 'Scrap Log', desc: 'Scrap dispatch', path: '/log/scrap', color: 'bg-yellow-600' },
+    { label: 'Production Log', desc: 'Daily stage unit snapshot', path: '/log/production',  color: 'bg-orange-600', icon: '🏭' },
+    { label: 'Meter Readings', desc: 'Electricity & water OCR',   path: '/log/meters',      color: 'bg-teal-600',   icon: '⚡' },
+    { label: 'Quality Gates',  desc: 'Gate oversight',            path: '/log/quality',     color: 'bg-blue-600',   icon: '✅' },
+    { label: 'Work Orders',    desc: 'Store oversight',           path: '/log/store',       color: 'bg-green-600',  icon: '📋' },
+    { label: 'Scrap Log',      desc: 'Scrap dispatch',            path: '/log/scrap',       color: 'bg-yellow-600', icon: '♻️' },
+  ],
+  safety_hr: [
+    { label: 'Meter Readings', desc: 'Utility consumption track', path: '/log/meters',      color: 'bg-teal-600',   icon: '⚡' },
   ],
   admin: [
-    { label: 'Quality Gates', desc: 'All gates', path: '/log/quality', color: 'bg-blue-600' },
-    { label: 'Work Orders', desc: 'All WOs', path: '/log/store', color: 'bg-green-600' },
-    { label: 'Scrap Log', desc: 'All scrap', path: '/log/scrap', color: 'bg-yellow-600' },
+    { label: 'Production Log', desc: 'All daily logs',            path: '/log/production',  color: 'bg-orange-600', icon: '🏭' },
+    { label: 'Meter Readings', desc: 'All meters',                path: '/log/meters',      color: 'bg-teal-600',   icon: '⚡' },
+    { label: 'Quality Gates',  desc: 'All gates',                 path: '/log/quality',     color: 'bg-blue-600',   icon: '✅' },
+    { label: 'Work Orders',    desc: 'All WOs',                   path: '/log/store',       color: 'bg-green-600',  icon: '📋' },
+    { label: 'Scrap Log',      desc: 'All scrap',                 path: '/log/scrap',       color: 'bg-yellow-600', icon: '♻️' },
   ],
 };
 

@@ -23,7 +23,11 @@ app.use('/api/store',       require('./routes/store'));
 app.use('/api/scrap',       require('./routes/scrap'));
 app.use('/api/tasks',       require('./routes/tasks'));
 app.use('/api/incidents',   require('./routes/incidents'));
-app.use('/api/users',       require('./routes/users'));
+app.use('/api/users',            require('./routes/users'));
+app.use('/api/meters',           require('./routes/meters'));
+app.use('/api/production-log',   require('./routes/production-log'));
+app.use('/api/emission-factors', require('./routes/emission-factors'));
+app.use('/api/esg',              require('./routes/esg'));
 
 // Serve frontend build in production
 const FRONTEND_BUILD = path.join(__dirname, '../../frontend/dist');
